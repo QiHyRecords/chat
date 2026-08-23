@@ -31,6 +31,7 @@ export const SchemeColors = buildSchemePalette(ThemeColors);
 type RuntimePalette = SchemePaletteItem & {
   primary: string;
   onPrimary: string;
+  onError: string;
   background: string;
   surface: string;
   elevated: string;

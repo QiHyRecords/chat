@@ -34,3 +34,7 @@
 - [x] Repair semantic RuntimePalette typing for every color token used by Chat.
 - [x] Add the missing profileLoading auth-context contract and preserve the user-approved Android workflow.
 - [x] Run pnpm check and tests before delivering the corrected clean source ZIP.
+- [x] Audit all semantic text, control, badge, placeholder, and disabled-state pairings against WCAG AA contrast targets.
+- [x] Replace the palette with harmonized, contrast-compliant light and dark semantic color tokens across Chat.
+- [x] Render and review Account, Texting, Conversation, Profile, and Group in both color schemes for legibility through deterministic semantic palette coverage checks.
+- [x] Run validation and deliver the contrast-corrected clean source ZIP.

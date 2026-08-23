@@ -43,6 +43,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       vars({
         "color-primary": SchemeColors[colorScheme].primary,
         "color-onPrimary": SchemeColors[colorScheme].onPrimary,
+        "color-onError": SchemeColors[colorScheme].onError,
         "color-background": SchemeColors[colorScheme].background,
         "color-surface": SchemeColors[colorScheme].surface,
         "color-elevated": SchemeColors[colorScheme].elevated,
