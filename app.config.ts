@@ -62,9 +62,10 @@ const config: ExpoConfig = {
       monochromeImage: "./assets/images/android-icon-monochrome.png",
     },
     edgeToEdgeEnabled: true,
+    softwareKeyboardLayoutMode: "resize",
     predictiveBackGestureEnabled: false,
     package: env.androidPackage,
-    permissions: ["POST_NOTIFICATIONS", "RECORD_AUDIO"],
+    permissions: ["POST_NOTIFICATIONS", "RECORD_AUDIO", "CAMERA"],
     intentFilters: [
       {
         action: "VIEW",
@@ -97,6 +98,22 @@ const config: ExpoConfig = {
       {
         photosPermission: "Allow $(PRODUCT_NAME) to select profile photos and chat media.",
         cameraPermission: "Allow $(PRODUCT_NAME) to capture chat media.",
+      },
+    ],
+    [
+      "expo-camera",
+      {
+        cameraPermission: "Allow $(PRODUCT_NAME) to capture chat photos and videos.",
+        microphonePermission: "Allow $(PRODUCT_NAME) to record video sound.",
+        recordAudioAndroid: true,
+      },
+    ],
+    [
+      "expo-media-library",
+      {
+        photosPermission: "Allow $(PRODUCT_NAME) to access chat media.",
+        savePhotosPermission: "Allow $(PRODUCT_NAME) to save chat media.",
+        granularPermissions: ["photo", "video"],
       },
     ],
     [

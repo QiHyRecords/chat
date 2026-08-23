@@ -20,7 +20,8 @@ describe("Supabase regression safeguards", () => {
     const people = source("app/find-people.tsx");
     const group = source("app/group/[id].tsx");
     expect(profile).toContain('.eq("id", id).single()');
-    expect(profile).toContain("}, [id]);");
+    expect(profile).toContain("useFocusEffect");
+    expect(profile).toContain("getFriendshipRelationship");
     expect(friends).toContain("`/profile/${item.id}`");
     expect(people).toContain("`/profile/${item.id}`");
     expect(group).toContain("`/profile/${item.user_id}`");

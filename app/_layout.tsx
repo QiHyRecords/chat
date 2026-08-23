@@ -7,6 +7,8 @@ import "react-native-reanimated";
 import { Platform } from "react-native";
 import "@/lib/_core/nativewind-pressable";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { useColors } from "@/hooks/use-colors";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import {
   SafeAreaFrameContext,
   SafeAreaInsetsContext,
@@ -38,6 +40,12 @@ function AuthNavigationGate() {
     if (user && isPublicRoute) router.replace("/(tabs)" as never);
   }, [loading, segments, user]);
   return null;
+}
+
+function ThemeAwareStatusBar() {
+  const colors = useColors();
+  const scheme = useColorScheme();
+  return <StatusBar style={scheme === "dark" ? "light" : "dark"} backgroundColor={colors.background} translucent={false} />;
 }
 
 export default function RootLayout() {
@@ -92,8 +100,10 @@ export default function RootLayout() {
             <Stack.Screen name="sign-up" />
             <Stack.Screen name="forgot-password" />
             <Stack.Screen name="edit-profile" />
+            <Stack.Screen name="camera-capture" />
+            <Stack.Screen name="media-editor" />
           </Stack>
-          <StatusBar style="auto" />
+          <ThemeAwareStatusBar />
       </ChatAuthProvider>
     </GestureHandlerRootView>
   );

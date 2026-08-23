@@ -1,34 +1,17 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder, useAudioRecorderState } from "expo-audio";
-import { useState } from "react";
-import { ActivityIndicator, Alert, Pressable, StyleSheet } from "react-native";
+import { useMemo, useState } from "react";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { useColors } from "@/hooks/use-colors";
 import type { PendingAttachment } from "@/shared/chat-types";
 
+function formatDuration(milliseconds: number) { const seconds = Math.floor(milliseconds / 1000); return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`; }
+
 export function VoiceRecorderButton({ disabled, onRecorded }: { disabled?: boolean; onRecorded: (attachment: PendingAttachment) => Promise<void> | void }) {
-  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
-  const state = useAudioRecorderState(recorder);
-  const [submitting, setSubmitting] = useState(false);
-  const toggle = async () => {
-    try {
-      if (state.isRecording) {
-        await recorder.stop();
-        if (!recorder.uri) throw new Error("The voice message could not be saved.");
-        setSubmitting(true);
-        await onRecorded({ uri: recorder.uri, name: `voice-${Date.now()}.m4a`, mimeType: "audio/m4a", size: 1, kind: "audio", durationMs: Math.max(1000, state.durationMillis ?? 1000) });
-        setSubmitting(false);
-        return;
-      }
-      const permission = await requestRecordingPermissionsAsync();
-      if (!permission.granted) return Alert.alert("Microphone unavailable", "Allow microphone access to record a voice message.");
-      await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: true });
-      await recorder.prepareToRecordAsync();
-      recorder.record();
-    } catch (error) {
-      setSubmitting(false);
-      Alert.alert("Voice message unavailable", error instanceof Error ? error.message : "Please try again.");
-    }
-  };
-  return <Pressable accessibilityLabel={state.isRecording ? "Stop voice recording" : "Record voice message"} disabled={disabled || submitting} onPress={() => void toggle()} style={({ pressed }) => [styles.button, state.isRecording && styles.recording, (disabled || submitting) && styles.disabled, pressed && styles.pressed]}>{submitting ? <ActivityIndicator color="#3858E9" size="small" /> : <MaterialIcons name={state.isRecording ? "stop" : "mic-none"} color={state.isRecording ? "#FFFFFF" : "#3858E9"} size={22} />}</Pressable>;
+  const colors = useColors(); const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY); const state = useAudioRecorderState(recorder); const [submitting, setSubmitting] = useState(false); const waveform = useMemo(() => [10, 16, 24, 14, 29, 19, 32, 17, 26, 12, 30, 21], []);
+  const toggle = async () => { try { if (state.isRecording) { await recorder.stop(); if (!recorder.uri) throw new Error("The voice message could not be saved."); setSubmitting(true); await onRecorded({ uri: recorder.uri, name: `voice-${Date.now()}.m4a`, mimeType: "audio/m4a", size: 1, kind: "audio", durationMs: Math.max(1000, state.durationMillis ?? 1000) }); setSubmitting(false); return; } const permission = await requestRecordingPermissionsAsync(); if (!permission.granted) return Alert.alert("Microphone unavailable", "Allow microphone access to record a voice message."); await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: true }); await recorder.prepareToRecordAsync(); recorder.record(); } catch (error) { setSubmitting(false); Alert.alert("Voice message unavailable", error instanceof Error ? error.message : "Please try again."); } };
+  if (state.isRecording) return <Pressable accessibilityLabel="Stop and send voice recording" onPress={() => void toggle()} style={({ pressed }) => [styles.recordingBar, { backgroundColor: colors.error + "22", borderColor: colors.error }, pressed && styles.pressed]}><View style={[styles.liveDot, { backgroundColor: colors.error }]} /><View style={styles.waveform}>{waveform.map((height, index) => <View key={index} style={[styles.waveBar, { backgroundColor: colors.error, height }]} />)}</View><Text style={[styles.duration, { color: colors.error }]}>{formatDuration(state.durationMillis ?? 0)}</Text><View style={[styles.stop, { backgroundColor: colors.error }]}><MaterialIcons color={colors.onError} name="stop" size={16} /></View></Pressable>;
+  return <Pressable accessibilityLabel="Record voice message" disabled={disabled || submitting} onPress={() => void toggle()} style={({ pressed }) => [styles.button, { backgroundColor: colors.accentSoft, borderColor: colors.border }, (disabled || submitting) && styles.disabled, pressed && styles.pressed]}>{submitting ? <ActivityIndicator color={colors.primary} size="small" /> : <MaterialIcons name="mic-none" color={colors.primary} size={22} />}</Pressable>;
 }
-const styles = StyleSheet.create({ button: { alignItems: "center", backgroundColor: "#E8EDFF", borderRadius: 19, height: 38, justifyContent: "center", width: 38 }, recording: { backgroundColor: "#D74343" }, disabled: { opacity: 0.5 }, pressed: { opacity: 0.75 } });
+const styles = StyleSheet.create({ button: { alignItems: "center", borderRadius: 19, borderWidth: 1, height: 38, justifyContent: "center", width: 38 }, recordingBar: { alignItems: "center", borderRadius: 20, borderWidth: 1, flex: 1, flexDirection: "row", gap: 8, height: 42, paddingHorizontal: 10 }, liveDot: { borderRadius: 4, height: 8, width: 8 }, waveform: { alignItems: "center", flex: 1, flexDirection: "row", gap: 2, height: 34 }, waveBar: { borderRadius: 2, width: 2 }, duration: { fontSize: 12, fontVariant: ["tabular-nums"], fontWeight: "900" }, stop: { alignItems: "center", borderRadius: 13, height: 26, justifyContent: "center", width: 26 }, disabled: { opacity: 0.5 }, pressed: { opacity: 0.75 } });

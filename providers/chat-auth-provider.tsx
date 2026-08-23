@@ -89,8 +89,8 @@ export function ChatAuthProvider({ children }: { children: React.ReactNode }) {
     const channel = supabase
       .channel(`notifications:${session.user.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${session.user.id}` }, (payload) => {
-        const notification = payload.new as { title?: string; body?: string; data?: { conversation_id?: string } };
-        if (notification.title && notification.body) {
+        const notification = payload.new as { kind?: string; title?: string; body?: string; data?: { conversation_id?: string } };
+        if (notification.kind === "message" && notification.title && notification.body) {
           void presentIncomingMessageNotification(notification.title, notification.body, notification.data?.conversation_id ?? "");
         }
       })

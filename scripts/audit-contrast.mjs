@@ -1,5 +1,5 @@
 const palette = {
-  light: { primary: "#2348C5", onPrimary: "#FFFFFF", background: "#F7F9FC", surface: "#FFFFFF", elevated: "#FFFFFF", foreground: "#111827", muted: "#45556C", subtle: "#596B86", border: "#7C8DA5", accentSoft: "#E1E8FF", success: "#0F6B4B", warning: "#8A4B00", error: "#B4233B" },
+  light: { primary: "#1D63E9", onPrimary: "#FFFFFF", background: "#F7F9FC", surface: "#FFFFFF", elevated: "#FFFFFF", foreground: "#111827", muted: "#45556C", subtle: "#596B86", border: "#7C8DA5", accentSoft: "#EAF0FF", success: "#0F6B4B", warning: "#8A4B00", error: "#B4233B" },
   dark: { primary: "#AFC0FF", onPrimary: "#0B1738", background: "#0A1020", surface: "#111A2E", elevated: "#17233A", foreground: "#F8FAFF", muted: "#C4D0E6", subtle: "#A9B8D2", border: "#7080A0", accentSoft: "#26375E", success: "#76E1B8", warning: "#FFD08A", error: "#FFB4B8" },
 };
 

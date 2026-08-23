@@ -35,10 +35,10 @@ export function PrimaryButton({ label, onPress, loading, disabled, icon }: { lab
   return <Pressable disabled={disabled || loading} onPress={onPress} style={({ pressed }) => [styles.primaryButton, { backgroundColor: disabled || loading ? colors.subtle : colors.primary }, pressed && !disabled && !loading && styles.buttonPressed]}>{loading ? <ActivityIndicator color={colors.onPrimary} /> : <>{icon ? <MaterialIcons name={icon} size={20} color={colors.onPrimary} /> : null}<Text style={[styles.primaryButtonText, { color: colors.onPrimary }]}>{label}</Text></>}</Pressable>;
 }
 
-export function SecondaryButton({ label, onPress, destructive = false, icon }: { label: string; onPress: () => void; destructive?: boolean; icon?: React.ComponentProps<typeof MaterialIcons>["name"] }) {
+export function SecondaryButton({ label, onPress, destructive = false, disabled = false, icon }: { label: string; onPress: () => void; destructive?: boolean; disabled?: boolean; icon?: React.ComponentProps<typeof MaterialIcons>["name"] }) {
   const colors = useColors();
-  const color = destructive ? colors.error : colors.primary;
-  return <Pressable onPress={onPress} style={({ pressed }) => [styles.secondaryButton, { backgroundColor: colors.surface, borderColor: destructive ? colors.error : colors.border }, pressed && styles.buttonPressed]}>{icon ? <MaterialIcons name={icon} size={20} color={color} /> : null}<Text style={[styles.secondaryButtonText, { color }]}>{label}</Text></Pressable>;
+  const color = disabled ? colors.muted : destructive ? colors.error : colors.primary;
+  return <Pressable disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.secondaryButton, { backgroundColor: disabled ? colors.elevated : colors.surface, borderColor: destructive ? colors.error : colors.border }, pressed && !disabled && styles.buttonPressed]}>{icon ? <MaterialIcons name={icon} size={20} color={color} /> : null}<Text style={[styles.secondaryButtonText, { color }]}>{label}</Text></Pressable>;
 }
 
 export function FormField({ label, error, ...props }: TextInputProps & { label: string; error?: string }) {

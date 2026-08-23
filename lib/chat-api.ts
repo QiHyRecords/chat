@@ -6,6 +6,7 @@ import { normalizeDisplayName, normalizeUsername, validateBio, validateEmail, va
 import type { AppNotification, ChatMessage, ConversationSummary, PendingAttachment, Profile } from "@/shared/chat-types";
 
 type Result<T> = { data: T; error: null } | { data: null; error: Error };
+export type FriendshipRelationship = "friends" | "outgoing_pending" | "incoming_pending" | "none";
 
 function toError(error: unknown) {
   if (error instanceof Error) return error;
@@ -134,9 +135,38 @@ export async function respondToFriendRequest(requestId: string, accept: boolean)
   return error ? { data: null, error: toError(error) } : { data: undefined, error: null };
 }
 
+export async function getFriendshipRelationship(otherUserId: string): Promise<Result<FriendshipRelationship>> {
+  try {
+    const cachedUser = await getCachedSessionUser();
+    if (cachedUser.error) throw cachedUser.error;
+    const userId = cachedUser.data.id;
+    if (userId === otherUserId) return { data: "none", error: null };
+    const [lowId, highId] = userId < otherUserId ? [userId, otherUserId] : [otherUserId, userId];
+    const [friendship, outgoing, incoming] = await Promise.all([
+      supabase.from("friendships").select("user_low_id").eq("user_low_id", lowId).eq("user_high_id", highId).maybeSingle(),
+      supabase.from("friend_requests").select("id").eq("requester_id", userId).eq("addressee_id", otherUserId).eq("status", "pending").maybeSingle(),
+      supabase.from("friend_requests").select("id").eq("requester_id", otherUserId).eq("addressee_id", userId).eq("status", "pending").maybeSingle(),
+    ]);
+    if (friendship.error) throw friendship.error;
+    if (outgoing.error) throw outgoing.error;
+    if (incoming.error) throw incoming.error;
+    if (friendship.data) return { data: "friends", error: null };
+    if (outgoing.data) return { data: "outgoing_pending", error: null };
+    if (incoming.data) return { data: "incoming_pending", error: null };
+    return { data: "none", error: null };
+  } catch (error) {
+    return { data: null, error: toError(error) };
+  }
+}
+
 export async function respondToGroupInvite(inviteId: string, accept: boolean): Promise<Result<void>> {
   const { error } = await supabase.rpc("respond_to_group_invite", { p_invite_id: inviteId, p_accept: accept });
   return error ? { data: null, error: toError(error) } : { data: undefined, error: null };
+}
+
+export async function getGroupInviteDetails(inviteId: string): Promise<Result<{ invite_id: string; invite_status: "pending" | "accepted" | "declined"; group_id: string; conversation_id: string; group_name: string; group_avatar_path: string | null; inviter_id: string; inviter_name: string; inviter_username: string }>> {
+  const { data, error } = await supabase.rpc("get_group_invite_details", { p_invite_id: inviteId }).single();
+  return error ? { data: null, error: toError(error) } : { data: data as { invite_id: string; invite_status: "pending" | "accepted" | "declined"; group_id: string; conversation_id: string; group_name: string; group_avatar_path: string | null; inviter_id: string; inviter_name: string; inviter_username: string }, error: null };
 }
 
 export async function blockUser(blockedId: string): Promise<Result<void>> {
@@ -355,10 +385,26 @@ export async function toggleReaction(messageId: string, emoji: string, active: b
 export function subscribeToConversation(conversationId: string, onMessage: (message: ChatMessage) => void): RealtimeChannel {
   return supabase
     .channel(`conversation:${conversationId}`)
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` }, (payload) => onMessage(payload.new as ChatMessage))
+    .on("postgres_changes", { event: "*", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` }, (payload) => onMessage(payload.new as ChatMessage))
+    .on("postgres_changes", { event: "*", schema: "public", table: "message_reactions" }, () => onMessage({ conversation_id: conversationId } as ChatMessage))
+    .on("postgres_changes", { event: "*", schema: "public", table: "message_attachments" }, () => onMessage({ conversation_id: conversationId } as ChatMessage))
+    .subscribe();
+}
+
+export function subscribeToConversations(onChange: () => void): RealtimeChannel {
+  return supabase
+    .channel("conversation-inbox")
+    .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, onChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "conversation_members" }, onChange)
     .subscribe();
 }
 
 export async function markConversationRead(conversationId: string): Promise<void> {
-  await supabase.from("conversation_members").update({ last_read_at: new Date().toISOString() }).eq("conversation_id", conversationId);
+  const cachedUser = await getCachedSessionUser();
+  if (cachedUser.error) return;
+  const readAt = new Date().toISOString();
+  await Promise.all([
+    supabase.from("conversation_members").update({ last_read_at: readAt }).eq("conversation_id", conversationId).eq("user_id", cachedUser.data.id),
+    supabase.from("notifications").update({ read_at: readAt }).eq("user_id", cachedUser.data.id).eq("kind", "message").contains("data", { conversation_id: conversationId }),
+  ]);
 }

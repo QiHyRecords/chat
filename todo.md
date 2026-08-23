@@ -38,3 +38,13 @@
 - [x] Replace the palette with harmonized, contrast-compliant light and dark semantic color tokens across Chat.
 - [x] Render and review Account, Texting, Conversation, Profile, and Group in both color schemes for legibility through deterministic semantic palette coverage checks.
 - [x] Run validation and deliver the contrast-corrected clean source ZIP.
+- [x] Audit the existing status bar, realtime refresh, media, voice, reactions, keyboard behavior, and full-screen design coverage.
+- [x] Set explicit theme-aware status bars, fix conversation recency/realtime refresh, keyboard avoidance, and brighten the primary accent while preserving contrast.
+- [x] Build Messenger-style media capture, preview/edit, viewing, saving, and compact media bubble workflows.
+- [x] Rebuild voice recording/playback and full multi-emoji reaction interactions.
+- [x] Complete the full design-system pass, add regression tests, run pnpm check, and deliver the updated clean source ZIP.
+- [x] Fix profile friendship actions so accepted friends never show Add friend and outgoing requests show Pending.
+- [x] Deduplicate message notifications so a conversation alerts once until it is opened/read again.
+- [x] Make friend-request notifications actionable and replace the request state with an English friendship-confirmed notification for both users after acceptance.
+- [x] Add actionable group invitations with group information and accept/decline controls.
+- [x] Add regression coverage, run full validation, checkpoint, and deliver the revised clean source ZIP.
