@@ -51,3 +51,6 @@
 - [x] Diagnose and eliminate the Android crash that occurs on or after authenticated startup.
 - [x] Repair low-contrast gray text on the Welcome and Sign in screens in dark mode.
 - [x] Add crash-focused regression coverage, rerun full validation, checkpoint, and deliver the repaired clean source ZIP.
+- [ ] Obtain the Android fatal exception/logcat for the persistent authenticated startup crash and trace it to a concrete source or native dependency.
+- [x] Audit and remove or safely isolate native startup dependencies that can terminate Android before the app renders.
+- [ ] Verify the repaired APK starts with both a fresh and existing authenticated session, then rerun validation and deliver updated source.

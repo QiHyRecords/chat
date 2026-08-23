@@ -46,7 +46,9 @@ const config: ExpoConfig = {
   icon: "./assets/images/icon.png",
   scheme: env.scheme,
   userInterfaceStyle: "automatic",
-  newArchEnabled: true,
+  // Keep native startup on the proven legacy bridge while third-party media modules
+  // are in use. This prevents TurboModule registration crashes before JavaScript renders.
+  newArchEnabled: false,
   ios: {
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,
