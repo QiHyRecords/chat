@@ -6,11 +6,25 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, Image, PanResponder, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import Svg, { Polyline } from "react-native-svg";
 import { VideoView, useVideoPlayer } from "expo-video";
-import { isValidFile, trim } from "react-native-video-trim";
 
 import { useColors } from "@/hooks/use-colors";
 import { sendAttachment } from "@/lib/chat-api";
 import type { PendingAttachment } from "@/shared/chat-types";
+
+type NativeVideoTrimmer = {
+  isValidFile: (uri: string) => Promise<{ duration: number }>;
+  trim: (path: string, options: { startTime: number; endTime: number }) => Promise<{ success: boolean; outputPath: string }>;
+};
+
+function getNativeVideoTrimmer(): NativeVideoTrimmer | null {
+  try {
+    // Do not resolve an optional TurboModule while the authenticated route tree starts.
+    // This keeps Expo Go and APKs built before this dependency usable.
+    return require("react-native-video-trim") as NativeVideoTrimmer;
+  } catch {
+    return null;
+  }
+}
 
 function ClipPreview({ uri, start }: { uri: string; start: number }) {
   const player = useVideoPlayer(uri, (instance) => { instance.currentTime = start; });
@@ -22,10 +36,10 @@ export default function MediaEditorScreen() {
   const params = useLocalSearchParams<{ conversationId: string; uri: string; kind: "image" | "video"; name: string; mimeType: string; width?: string; height?: string }>();
   const [caption, setCaption] = useState(""); const [cropped, setCropped] = useState(false); const [drawMode, setDrawMode] = useState(false); const [points, setPoints] = useState<string[]>([]); const [trimStart, setTrimStart] = useState(0); const [trimEnd, setTrimEnd] = useState(0); const [durationSeconds, setDurationSeconds] = useState(0); const [sending, setSending] = useState(false); const canvas = useRef<View>(null); const isImage = params.kind === "image";
 
-  useEffect(() => { if (isImage) return; void isValidFile(params.uri).then((result) => { const seconds = Math.max(1, Math.ceil(result.duration / 1000)); setDurationSeconds(seconds); setTrimEnd(seconds); }).catch(() => { setDurationSeconds(60); setTrimEnd(60); }); }, [isImage, params.uri]);
+  useEffect(() => { if (isImage) return; const trimmer = getNativeVideoTrimmer(); if (!trimmer) { setDurationSeconds(60); setTrimEnd(60); return; } void trimmer.isValidFile(params.uri).then((result) => { const seconds = Math.max(1, Math.ceil(result.duration / 1000)); setDurationSeconds(seconds); setTrimEnd(seconds); }).catch(() => { setDurationSeconds(60); setTrimEnd(60); }); }, [isImage, params.uri]);
   const panResponder = PanResponder.create({ onStartShouldSetPanResponder: () => drawMode, onMoveShouldSetPanResponder: () => drawMode, onPanResponderGrant: (event) => setPoints([`${event.nativeEvent.locationX},${event.nativeEvent.locationY}`]), onPanResponderMove: (event) => setPoints((items) => [...items, `${event.nativeEvent.locationX},${event.nativeEvent.locationY}`]) });
 
-  const send = async () => { setSending(true); try { let uri = params.uri; if (isImage && cropped) { const width = Number(params.width ?? 0); const height = Number(params.height ?? 0); const side = Math.max(1, Math.min(width || 1080, height || 1080)); const result = await ImageManipulator.manipulateAsync(uri, [{ crop: { originX: Math.max(0, (width - side) / 2), originY: Math.max(0, (height - side) / 2), width: side, height: side } }], { compress: 0.9, format: SaveFormat.JPEG }); uri = result.uri; } if (isImage && canvas.current && (caption.trim() || points.length)) uri = await captureRef(canvas, { format: "jpg", quality: 0.92, result: "tmpfile" }); if (!isImage) { const result = await trim(uri.replace(/^file:\/\//, ""), { startTime: trimStart * 1000, endTime: trimEnd * 1000 }); if (!result.success || !result.outputPath) throw new Error("The video editor could not export your selected clip."); uri = result.outputPath.startsWith("file://") ? result.outputPath : `file://${result.outputPath}`; } const attachment: PendingAttachment = { uri, name: params.name, mimeType: params.mimeType, size: 1, kind: isImage ? "image" : "video", width: Number(params.width ?? 0) || undefined, height: Number(params.height ?? 0) || undefined, durationMs: isImage ? undefined : Math.max(0, trimEnd - trimStart) * 1000 }; const result = await sendAttachment(params.conversationId, attachment, caption.trim()); if (result.error) throw result.error; router.replace(`/conversation/${params.conversationId}` as never); } catch (error) { Alert.alert("Media not sent", error instanceof Error ? error.message : "Please try again."); } finally { setSending(false); } };
+  const send = async () => { setSending(true); try { let uri = params.uri; if (isImage && cropped) { const width = Number(params.width ?? 0); const height = Number(params.height ?? 0); const side = Math.max(1, Math.min(width || 1080, height || 1080)); const result = await ImageManipulator.manipulateAsync(uri, [{ crop: { originX: Math.max(0, (width - side) / 2), originY: Math.max(0, (height - side) / 2), width: side, height: side } }], { compress: 0.9, format: SaveFormat.JPEG }); uri = result.uri; } if (isImage && canvas.current && (caption.trim() || points.length)) uri = await captureRef(canvas, { format: "jpg", quality: 0.92, result: "tmpfile" }); if (!isImage) { const trimmer = getNativeVideoTrimmer(); if (!trimmer) throw new Error("Video trimming needs a rebuilt APK. Update the installed build and try again."); const result = await trimmer.trim(uri.replace(/^file:\/\//, ""), { startTime: trimStart * 1000, endTime: trimEnd * 1000 }); if (!result.success || !result.outputPath) throw new Error("The video editor could not export your selected clip."); uri = result.outputPath.startsWith("file://") ? result.outputPath : `file://${result.outputPath}`; } const attachment: PendingAttachment = { uri, name: params.name, mimeType: params.mimeType, size: 1, kind: isImage ? "image" : "video", width: Number(params.width ?? 0) || undefined, height: Number(params.height ?? 0) || undefined, durationMs: isImage ? undefined : Math.max(0, trimEnd - trimStart) * 1000 }; const result = await sendAttachment(params.conversationId, attachment, caption.trim()); if (result.error) throw result.error; router.replace(`/conversation/${params.conversationId}` as never); } catch (error) { Alert.alert("Media not sent", error instanceof Error ? error.message : "Please try again."); } finally { setSending(false); } };
 
   const adjustStart = (amount: number) => setTrimStart((value) => Math.max(0, Math.min(trimEnd - 1, value + amount)));
   const adjustEnd = (amount: number) => setTrimEnd((value) => Math.max(trimStart + 1, Math.min(durationSeconds || 60, value + amount)));

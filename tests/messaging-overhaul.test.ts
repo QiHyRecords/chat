@@ -24,8 +24,9 @@ describe("messaging overhaul regression coverage", () => {
     expect(source("app/conversation/[id].tsx")).toContain('pathname: "/media-editor"');
     expect(source("app/conversation/[id].tsx")).toContain('pathname: "/camera-capture"');
     expect(source("app/media-editor.tsx")).toContain("ImageManipulator.manipulateAsync");
-    expect(source("app/media-editor.tsx")).toContain('from "react-native-video-trim"');
-    expect(source("app/media-editor.tsx")).toContain("await trim(");
+    expect(source("app/media-editor.tsx")).toContain('require("react-native-video-trim")');
+    expect(source("app/media-editor.tsx")).not.toContain('from "react-native-video-trim"');
+    expect(source("app/media-editor.tsx")).toContain("trimmer.trim(");
     expect(source("app/media-editor.tsx")).toContain("outputPath");
     expect(source("app/camera-capture.tsx")).toContain("CameraView");
     expect(source("app/camera-capture.tsx")).toContain('<StatusBar backgroundColor="#000000" style="light"');

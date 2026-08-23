@@ -48,3 +48,6 @@
 - [x] Make friend-request notifications actionable and replace the request state with an English friendship-confirmed notification for both users after acceptance.
 - [x] Add actionable group invitations with group information and accept/decline controls.
 - [x] Add regression coverage, run full validation, checkpoint, and deliver the revised clean source ZIP.
+- [x] Diagnose and eliminate the Android crash that occurs on or after authenticated startup.
+- [x] Repair low-contrast gray text on the Welcome and Sign in screens in dark mode.
+- [x] Add crash-focused regression coverage, rerun full validation, checkpoint, and deliver the repaired clean source ZIP.
