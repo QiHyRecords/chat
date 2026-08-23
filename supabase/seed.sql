@@ -1,0 +1,2 @@
+-- Development seed data is intentionally empty. Create accounts through Supabase Auth so
+-- the profile trigger, constraints, and row-level security are exercised correctly.

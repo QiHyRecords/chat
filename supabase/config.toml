@@ -1,0 +1,14 @@
+project_id = "chat"
+
+[api]
+enabled = true
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+
+[auth]
+enabled = true
+site_url = "chat://"
+additional_redirect_urls = ["chat://reset-password", "chat://auth-callback"]
+
+[storage]
+enabled = true

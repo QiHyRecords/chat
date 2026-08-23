@@ -1,0 +1,36 @@
+# Project TODO
+
+- [x] Establish Chat visual theme, navigation, and reusable mobile UI primitives.
+- [x] Generate and configure the custom Chat application icon and launcher branding.
+- [x] Add Supabase client configuration and Android-safe environment handling.
+- [x] Create Supabase migration structure, relational messaging schema, database functions, and seed data.
+- [x] Add Supabase Row Level Security, storage buckets, and storage policies.
+- [x] Implement registration, login, logout, persistent session, password recovery, and account deletion requests.
+- [x] Implement profile display, secure editing, avatar upload/preview/retry, username validation, and badge display rules.
+- [x] Implement Texting, Notifications, Friends, and Account primary navigation.
+- [x] Implement friend requests, accepted friends, removal, blocking, and relationship state presentation.
+- [x] Implement private conversations, group creation, membership, role permissions, and invitations.
+- [x] Implement realtime messages, replies, reactions, edits, deletes, copy actions, and unread counts.
+- [x] Implement image, video, file, and voice-message attachment workflows with downloads.
+- [x] Implement reporting, moderation-facing record creation, notification handling, and call-interface screens.
+- [x] Add GitHub Actions Android APK build workflow, EAS configuration, and clean source delivery configuration.
+- [x] Write README, environment example, Supabase deployment notes, and security documentation.
+- [x] Add automated tests for validation, Supabase request shaping, and core user-interface state.
+- [x] Run type checking, tests, Android-oriented build validation, and visual review.
+- [x] Render VERIFIED as structured inline identity UI only in the approved contexts, preserving separate privilege badges and clean message bubbles.
+- [x] Replace message and attachment send-time Supabase user lookups with cached session access.
+- [x] Remove unused MySQL/Drizzle scaffold files and dependencies.
+- [x] Add and run regression checks for profile route parameter refetching and attachment upload/storage policy behavior.
+- [x] Package and deliver an updated clean source ZIP.
+- [x] Complete static profile and attachment validation; defer live upload testing until APK installation at the user’s request.
+- [x] Fix duplicate conversation rows by restricting listConversations memberships to the current user.
+- [x] Clear cached authentication/profile state and redirect immediately after sign out.
+- [x] Replace Account’s transient profile error card with a proper loading state until a profile request succeeds or fails.
+- [x] Redesign Chat with WCAG-conscious semantic light/dark colors, stronger hierarchy, and consistent mobile spacing/alignment.
+- [x] Add regression tests and deliver the refreshed clean source ZIP.
+- [x] Fix Group Settings loading by validating group creation records and member-scoped group visibility.
+- [x] Surface actionable group-details diagnostics in development instead of generic client errors.
+- [x] Add regression coverage and deliver the Group Settings fix.
+- [x] Repair semantic RuntimePalette typing for every color token used by Chat.
+- [x] Add the missing profileLoading auth-context contract and preserve the user-approved Android workflow.
+- [x] Run pnpm check and tests before delivering the corrected clean source ZIP.
