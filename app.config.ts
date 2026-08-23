@@ -46,9 +46,9 @@ const config: ExpoConfig = {
   icon: "./assets/images/icon.png",
   scheme: env.scheme,
   userInterfaceStyle: "automatic",
-  // Keep native startup on the proven legacy bridge while third-party media modules
-  // are in use. This prevents TurboModule registration crashes before JavaScript renders.
-  newArchEnabled: false,
+  // Reanimated 4 and its Worklets runtime require the New Architecture in this SDK.
+  // Native media modules are loaded only when their matching feature is opened.
+  newArchEnabled: true,
   ios: {
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,

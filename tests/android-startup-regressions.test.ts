@@ -12,11 +12,11 @@ describe("Android startup and authentication-screen safeguards", () => {
     expect(editor).not.toContain('import { isValidFile, trim } from "react-native-video-trim"');
   });
 
-  it("keeps Android on the legacy architecture until every native media dependency is proven stable", () => {
+  it("keeps Android on the New Architecture required by the installed Reanimated and Worklets runtime", () => {
     const config = source("app.config.ts");
     const gradle = source("android/gradle.properties");
-    expect(config).toContain("newArchEnabled: false");
-    expect(gradle).toContain("newArchEnabled=false");
+    expect(config).toContain("newArchEnabled: true");
+    expect(gradle).toContain("newArchEnabled=true");
   });
 
   it("uses semantic theme colors for Welcome and Sign in text instead of light-only gray literals", () => {

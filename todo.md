@@ -54,3 +54,6 @@
 - [ ] Obtain the Android fatal exception/logcat for the persistent authenticated startup crash and trace it to a concrete source or native dependency.
 - [x] Audit and remove or safely isolate native startup dependencies that can terminate Android before the app renders.
 - [ ] Verify the repaired APK starts with both a fresh and existing authenticated session, then rerun validation and deliver updated source.
+- [x] Restore New Architecture because the installed Reanimated/Worklets versions require it for Android builds.
+- [x] Audit and remove or replace any native dependency that is incompatible with Chat’s required New Architecture build.
+- [ ] Regenerate Android configuration, validate the build inputs, rerun tests and TypeScript checks, then deliver corrected source.
