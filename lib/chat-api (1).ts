@@ -383,9 +383,8 @@ export async function toggleReaction(messageId: string, emoji: string, active: b
 }
 
 export function subscribeToConversation(conversationId: string, onMessage: (message: ChatMessage) => void): RealtimeChannel {
-  const uniqueTopic = `conversation:${conversationId}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
   return supabase
-    .channel(uniqueTopic)
+    .channel(`conversation:${conversationId}`)
     .on("postgres_changes", { event: "*", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` }, (payload) => onMessage(payload.new as ChatMessage))
     .on("postgres_changes", { event: "*", schema: "public", table: "message_reactions" }, () => onMessage({ conversation_id: conversationId } as ChatMessage))
     .on("postgres_changes", { event: "*", schema: "public", table: "message_attachments" }, () => onMessage({ conversation_id: conversationId } as ChatMessage))
@@ -393,9 +392,8 @@ export function subscribeToConversation(conversationId: string, onMessage: (mess
 }
 
 export function subscribeToConversations(onChange: () => void): RealtimeChannel {
-  const uniqueTopic = `conversation-inbox:${Date.now()}:${Math.random().toString(36).slice(2)}`;
   return supabase
-    .channel(uniqueTopic)
+    .channel("conversation-inbox")
     .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, onChange)
     .on("postgres_changes", { event: "*", schema: "public", table: "conversation_members" }, onChange)
     .subscribe();
