@@ -264,6 +264,30 @@ export async function markNotificationRead(notificationId: string): Promise<void
   await supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("id", notificationId);
 }
 
+export async function getUnreadSummary(): Promise<Result<{ messages: number; notifications: number }>> {
+  try {
+    const cachedUser = await getCachedSessionUser();
+    if (cachedUser.error) throw cachedUser.error;
+    const userId = cachedUser.data.id;
+    const [{ count: notificationsCount, error: notificationsError }, { data: memberships, error: membershipsError }] = await Promise.all([
+      supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", userId).is("read_at", null),
+      supabase.from("conversation_members").select("conversation_id, last_read_at").eq("user_id", userId).is("left_at", null),
+    ]);
+    if (notificationsError) throw notificationsError;
+    if (membershipsError) throw membershipsError;
+    const unreadCounts = await Promise.all((memberships ?? []).map((membership) => {
+      const query = membership.last_read_at
+        ? supabase.from("messages").select("id", { count: "exact", head: true }).eq("conversation_id", membership.conversation_id).gt("created_at", membership.last_read_at).neq("sender_id", userId)
+        : supabase.from("messages").select("id", { count: "exact", head: true }).eq("conversation_id", membership.conversation_id).neq("sender_id", userId);
+      return query;
+    }));
+    const messages = unreadCounts.reduce((total, result) => total + (result.count ?? 0), 0);
+    return { data: { messages, notifications: notificationsCount ?? 0 }, error: null };
+  } catch (error) {
+    return { data: null, error: toError(error) };
+  }
+}
+
 export async function listConversations(): Promise<Result<ConversationSummary[]>> {
   try {
     const cachedUser = await getCachedSessionUser();
@@ -306,7 +330,7 @@ export async function listConversations(): Promise<Result<ConversationSummary[]>
 export async function listMessages(conversationId: string): Promise<Result<ChatMessage[]>> {
   const { data, error } = await supabase
     .from("messages")
-    .select("*, sender:profiles!messages_sender_id_fkey(id, username, display_name, avatar_path, verified, badges), attachments:message_attachments(*), reactions:message_reactions(emoji, user_id)")
+    .select("*, sender:profiles!messages_sender_id_fkey(id, username, display_name, avatar_path, verified, badges), attachments:message_attachments(*), reactions:message_reactions(emoji, user_id), reply_to:messages!messages_reply_to_id_fkey(id, body, sender:profiles!messages_sender_id_fkey(display_name))")
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: true });
   return error ? { data: null, error: toError(error) } : { data: (data ?? []) as ChatMessage[], error: null };

@@ -2,7 +2,7 @@ import type { Session, User } from "@supabase/supabase-js";
 import { AppState, type AppStateStatus, Platform } from "react-native";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-import { getSessionProfile, signOut as signOutRequest } from "@/lib/chat-api";
+import { getSessionProfile, getUnreadSummary, signOut as signOutRequest } from "@/lib/chat-api";
 import { presentIncomingMessageNotification } from "@/lib/device-notifications";
 import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/shared/chat-types";
@@ -17,6 +17,9 @@ type ChatAuthContextValue = {
   refreshProfile: () => Promise<void>;
   updateCachedProfile: (profile: Profile) => void;
   signOut: () => Promise<void>;
+  unreadMessages: number;
+  unreadNotifications: number;
+  refreshUnreadCounts: () => Promise<void>;
 };
 
 const ChatAuthContext = createContext<ChatAuthContextValue | null>(null);
@@ -27,6 +30,13 @@ export function ChatAuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState<Error | null>(null);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  const refreshUnreadCounts = useCallback(async () => {
+    const result = await getUnreadSummary();
+    if (result.data) { setUnreadMessages(result.data.messages); setUnreadNotifications(result.data.notifications); }
+  }, []);
 
   const refreshProfile = useCallback(async () => {
     setProfileLoading(true);
@@ -86,6 +96,7 @@ export function ChatAuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!session?.user.id) return;
+    void refreshUnreadCounts();
     const channel = supabase
       .channel(`notifications:${session.user.id}:${Date.now()}:${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${session.user.id}` }, (payload) => {
@@ -93,10 +104,11 @@ export function ChatAuthProvider({ children }: { children: React.ReactNode }) {
         if (notification.kind === "message" && notification.title && notification.body) {
           void presentIncomingMessageNotification(notification.title, notification.body, notification.data?.conversation_id ?? "");
         }
+        void refreshUnreadCounts();
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [session?.user.id]);
+  }, [session?.user.id, refreshUnreadCounts]);
 
   const signOut = useCallback(async () => {
     setSession(null);
@@ -104,6 +116,8 @@ export function ChatAuthProvider({ children }: { children: React.ReactNode }) {
     setProfileError(null);
     setProfileLoading(false);
     setLoading(false);
+    setUnreadMessages(0);
+    setUnreadNotifications(0);
     const result = await signOutRequest();
     if (result.error) throw result.error;
   }, []);
@@ -119,8 +133,11 @@ export function ChatAuthProvider({ children }: { children: React.ReactNode }) {
       refreshProfile,
       updateCachedProfile: setProfile,
       signOut,
+      unreadMessages,
+      unreadNotifications,
+      refreshUnreadCounts,
     }),
-    [session, profile, loading, profileLoading, profileError, refreshProfile, signOut],
+    [session, profile, loading, profileLoading, profileError, refreshProfile, signOut, unreadMessages, unreadNotifications, refreshUnreadCounts],
   );
 
   return <ChatAuthContext.Provider value={value}>{children}</ChatAuthContext.Provider>;

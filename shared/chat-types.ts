@@ -34,6 +34,7 @@ export type ChatMessage = {
   conversation_id: string;
   sender_id: string | null;
   reply_to_id: string | null;
+  reply_to?: { id: string; body: string | null; sender?: { display_name: string } | null } | null;
   kind: "text" | "attachment" | "system" | "call";
   body: string | null;
   edited_at: string | null;
