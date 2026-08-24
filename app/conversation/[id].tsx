@@ -12,6 +12,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { VoiceRecorderButton } from "@/components/voice-recorder-button";
 import { useColors } from "@/hooks/use-colors";
 import { deleteMessage, editMessage, listMessages, markConversationRead, reportMessage, sendAttachment, sendMessage, subscribeToConversation, toggleReaction } from "@/lib/chat-api";
+import { supabase } from "@/lib/supabase";
 import { useChatAuth } from "@/providers/chat-auth-provider";
 import type { ChatMessage, PendingAttachment } from "@/shared/chat-types";
 
@@ -31,7 +32,7 @@ export default function ConversationScreen() {
   const { id, title = "Conversation", kind = "direct", verified = "false" } = useLocalSearchParams<{ id: string; title?: string; kind?: "direct" | "group"; verified?: string }>(); const { profile } = useChatAuth(); const [messages, setMessages] = useState<ChatMessage[]>([]); const [loading, setLoading] = useState(true); const [error, setError] = useState<string | null>(null); const [draft, setDraft] = useState(""); const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null); const [editing, setEditing] = useState<ChatMessage | null>(null); const [sending, setSending] = useState(false); const [reactionTarget, setReactionTarget] = useState<ChatMessage | null>(null); const listRef = useRef<FlatList<ChatMessage>>(null);
   const refresh = useCallback(async () => { const result = await listMessages(id); if (result.error) setError(result.error.message); else { setMessages(result.data); setError(null); } setLoading(false); void markConversationRead(id); }, [id]);
   const scrollToLatest = useCallback((animated = true) => requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated })), []);
-  useEffect(() => { void refresh(); const channel = subscribeToConversation(id, () => void refresh()); return () => { channel.unsubscribe(); }; }, [id, refresh]);
+  useEffect(() => { void refresh(); const channel = subscribeToConversation(id, () => void refresh()); return () => { supabase.removeChannel(channel); }; }, [id, refresh]);
   useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
   useEffect(() => { if (!loading) scrollToLatest(false); }, [loading, messages.length, scrollToLatest]);
   const submit = async () => { if (!draft.trim()) return; setSending(true); const result = editing ? await editMessage(editing.id, draft) : await sendMessage(id, draft, replyingTo?.id); setSending(false); if (result.error) return Alert.alert("Message not sent", result.error.message); setDraft(""); setReplyingTo(null); setEditing(null); void refresh(); };

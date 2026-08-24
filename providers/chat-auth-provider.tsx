@@ -95,7 +95,7 @@ export function ChatAuthProvider({ children }: { children: React.ReactNode }) {
         }
       })
       .subscribe();
-    return () => { channel.unsubscribe(); };
+    return () => { supabase.removeChannel(channel); };
   }, [session?.user.id]);
 
   const signOut = useCallback(async () => {
