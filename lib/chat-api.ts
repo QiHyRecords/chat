@@ -330,7 +330,7 @@ export async function listConversations(): Promise<Result<ConversationSummary[]>
 export async function listMessages(conversationId: string): Promise<Result<ChatMessage[]>> {
   const { data, error } = await supabase
     .from("messages")
-    .select("*, sender:profiles!messages_sender_id_fkey(id, username, display_name, avatar_path, verified, badges), attachments:message_attachments(*), reactions:message_reactions(emoji, user_id), reply_to:messages!messages_reply_to_id_fkey(id, body, sender:profiles!messages_sender_id_fkey(display_name))")
+    .select("*, sender:profiles!messages_sender_id_fkey(id, username, display_name, avatar_path, verified, badges), attachments:message_attachments(*), reactions:message_reactions(emoji, user_id), reply_to:messages!reply_to_id(id, body, sender:profiles!messages_sender_id_fkey(display_name))")
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: true });
   return error ? { data: null, error: toError(error) } : { data: (data ?? []) as ChatMessage[], error: null };
