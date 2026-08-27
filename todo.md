@@ -56,4 +56,8 @@
 - [ ] Verify the repaired APK starts with both a fresh and existing authenticated session, then rerun validation and deliver updated source.
 - [x] Restore New Architecture because the installed Reanimated/Worklets versions require it for Android builds.
 - [x] Audit and remove or replace any native dependency that is incompatible with Chat’s required New Architecture build.
-- [ ] Regenerate Android configuration, validate the build inputs, rerun tests and TypeScript checks, then deliver corrected source.
+- [x] Regenerate Android configuration, validate the build inputs, rerun tests and TypeScript checks, then deliver corrected source.
+- [x] Replace the working source baseline with the user-provided chat-fixed-v7 archive while preserving its existing fixes.
+- [x] Create centralized accessible claymorphism palette, dual-shadow elevation presets, and pressed interaction primitives.
+- [x] Apply the claymorphism design system to the auth, Texting, Conversation, Friends, Notifications, Account/Profile, Group, media editor, call, and invitation journeys without changing their behavior.
+- [x] Verify WCAG color coverage, TypeScript, tests, and generated Android New Architecture configuration before delivering the clean source ZIP.

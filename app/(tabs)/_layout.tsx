@@ -26,9 +26,15 @@ export default function TabLayout() {
           paddingBottom: bottomPadding,
           height: tabBarHeight,
           backgroundColor: colors.elevated,
-          borderTopColor: colors.border,
-          borderTopWidth: 0.5,
+          borderTopWidth: 0,
+          elevation: 14,
+          shadowColor: colors.clayShadow,
+          shadowOffset: { width: 0, height: -6 },
+          shadowOpacity: 0.22,
+          shadowRadius: 16,
         },
+        tabBarActiveBackgroundColor: colors.accentSoft,
+        tabBarItemStyle: { borderRadius: 18, marginHorizontal: 4, marginVertical: 3 },
       }}
     >
       <Tabs.Screen

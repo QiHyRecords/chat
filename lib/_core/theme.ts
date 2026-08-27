@@ -43,6 +43,8 @@ type RuntimePalette = SchemePaletteItem & {
   success: string;
   warning: string;
   error: string;
+  clayHighlight: string;
+  clayShadow: string;
   text: string;
   tint: string;
   icon: string;

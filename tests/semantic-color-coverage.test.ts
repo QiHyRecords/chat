@@ -18,4 +18,20 @@ describe("semantic color coverage", () => {
     const files = ["components/chat-ui.tsx", "app/(tabs)/friends.tsx", "app/(tabs)/notifications.tsx", "app/group-invite/[id].tsx", "app/call/[id].tsx"];
     for (const file of files) expect(readFileSync(join(root, file), "utf8"), file).not.toMatch(/#[0-9A-Fa-f]{6}/);
   });
+
+  it("keeps the clay elevation system centralized and present on core journeys", () => {
+    const primitive = readFileSync(join(root, "components/clay-ui.tsx"), "utf8");
+    expect(primitive).toContain("ClayPressable");
+    expect(primitive).toContain("ClaySurface");
+    expect(primitive).toContain("clayHighlight");
+    expect(primitive).toContain("clayShadow");
+    const clayScreens = [
+      "app/welcome.tsx", "app/sign-up.tsx", "app/find-people.tsx", "app/new-conversation.tsx",
+      "app/(tabs)/account.tsx", "app/(tabs)/friends.tsx", "app/(tabs)/notifications.tsx",
+      "app/conversation/[id].tsx", "app/profile/[id].tsx", "app/group/[id].tsx",
+      "app/call/[id].tsx", "app/media-editor.tsx", "components/message-attachment.tsx",
+      "components/voice-recorder-button.tsx",
+    ];
+    for (const file of clayScreens) expect(readFileSync(join(root, file), "utf8"), file).toMatch(/ClayPressable|ClaySurface|useClayStyles/);
+  });
 });
